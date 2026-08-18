@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Match — Overlay (default)</title>
+    <link rel="stylesheet" href="index.css" />
+  </head>
+  <body>
+    <div id="board">
+      <div class="side p1 hidden" id="p1">
+        <span class="panel-bg"></span>
+        <span class="score-chip" id="p1-score"></span>
+        <span class="info">
+          <span class="team" id="p1-team"></span>
+          <div class="participants" id="p1-participants"></div>
+        </span>
+      </div>
+      <div class="round-chip">
+        <span id="round"></span>
+      </div>
+      <div class="side p2 hidden" id="p2">
+        <span class="panel-bg"></span>
+        <span class="info">
+          <span class="team" id="p2-team"></span>
+          <div class="participants" id="p2-participants"></div>
+        </span>
+        <span class="score-chip" id="p2-score"></span>
+      </div>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>
