@@ -93,10 +93,23 @@ body {
 }
 
 .participant-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
+}
+.side.p2 .participant-line {
+  flex-direction: row-reverse;
+}
+.participant-flag {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28);
 }
 
 .participant-line:not(:only-child) {
