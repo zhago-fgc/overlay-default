@@ -1,136 +1,245 @@
-/* Original design — dark angled panels, one accent color on the score,
-   slide-in on state change. Own values throughout, not derived from any
-   specific external stylesheet. */
+/* Pixel-accurate port of the provided overlay-type-1 / overlay-type-2 SVG
+   designs — coordinates below were resolved from the composed SVG
+   transforms (not eyeballed). The design is a self-contained 1417px-wide
+   block (the two "positions" SVGs just showed it centered in a 1920x1080
+   frame), so #board is centered independently of the actual viewport width
+   rather than assuming a literal 1920px canvas. Type-2 (2XKO) is identical
+   to type-1 except the player panels sit 17px lower; the round panel is
+   unchanged. */
 
 :root {
-  --panel-bg: rgba(18, 18, 24, 0.82);
-  --accent: #7c3aed;
-  --ink: #f5f5f5;
-  --muted: rgba(245, 245, 245, 0.65);
+  --panel-fill: #000;
+  --panel-outline: #fff;
+  --ink: #fff;
+  --muted: rgb(154, 154, 154);
+  --top-offset: 0px;
+  --flag-width: 66.71px;
 }
 
+html,
 body {
   margin: 0;
+  width: 100vw;
+  height: 100vh;
   background: transparent;
-  font-family: system-ui, sans-serif;
+  font-family: 'Poppins', system-ui, sans-serif;
   color: var(--ink);
 }
 
 #board {
   position: fixed;
-  top: 32px;
+  top: var(--top-offset);
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  align-items: stretch;
-  gap: 6px;
+  width: 1417px;
+  height: 56px;
 }
 
+.players {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.3s ease;
+}
+
+#board[data-type='type-2'] .players {
+  transform: translateY(17px);
+}
+
+/* --fill-width (set per-side below) is the fill's full measured width from
+   the SVG; the flag carves a --flag-width slice out of one edge, so
+   --fill-visible-width (what the fill actually renders at) is derived once
+   here instead of repeating the same subtraction at every point below that
+   needs it. */
 .side {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 320px;
-  height: 56px;
-  padding: 0 22px;
+  position: absolute;
+  top: 0;
+  width: 495px;
+  height: 39px;
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
+  --fill-visible-width: calc(var(--fill-width) - var(--flag-width));
 }
-
-.side .panel-bg {
-  position: absolute;
-  inset: 0;
-  background: var(--panel-bg);
-  z-index: -1;
-}
-
-.side.p1 .panel-bg {
-  transform: skewX(-10deg);
+.side.p1 {
+  left: 0;
+  --fill-left: 1px;
+  --fill-width: 432px;
 }
 .side.p2 {
-  flex-direction: row-reverse;
-}
-.side.p2 .panel-bg {
-  transform: skewX(10deg);
-}
-
-.score-chip {
-  background: var(--accent);
-  color: var(--ink);
-  min-width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.info {
-  display: flex;
-  flex-direction: column;
-}
-.side.p2 .info {
-  align-items: flex-end;
-  text-align: right;
-}
-
-.team {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-}
-
-/* One line per participant — collapses to a single line in the common
-   single-player case, stacks when a side has more than one (duo/squad). */
-.participants {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.participant-line {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-.side.p2 .participant-line {
-  flex-direction: row-reverse;
-}
-.participant-flag {
-  width: 24px;
-  height: 18px;
-  object-fit: cover;
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28);
-}
-
-.participant-line:not(:only-child) {
-  font-size: 15px;
-}
-
-.round-chip {
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  background: var(--panel-bg);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-  border-bottom: 2px solid var(--accent);
+  left: 922px;
+  --fill-left: 62px;
+  --fill-width: 432px;
 }
 
 .side.hidden {
   opacity: 0;
   transform: translateY(-12px);
   pointer-events: none;
+}
+
+.panel-outline,
+.round .panel-outline {
+  position: absolute;
+  inset: 0;
+  background: var(--panel-outline);
+}
+.panel-fill,
+.round .panel-fill {
+  position: absolute;
+  background: var(--panel-fill);
+}
+
+.side.p1 .panel-outline {
+  clip-path: polygon(495px 39px, 11.7px 39px, 0px 27.3px, 0px 0px, 483.3px 0px, 495px 11.7px, 495px 39px);
+}
+/* The fill's rendered box stops at --fill-visible-width (its measured width
+   minus the flag's width) — the flag sits flush against that edge (see
+   .flag below), so the fill no longer runs underneath it. */
+.side.p1 .panel-fill {
+  left: var(--fill-left);
+  top: 1px;
+  width: var(--fill-visible-width);
+  height: 37px;
+  clip-path: polygon(
+    0px 26.03px,
+    0px 0px,
+    var(--fill-visible-width) 0px,
+    var(--fill-visible-width) 37px,
+    10.98px 37px,
+    0px 26.03px
+  );
+}
+.side.p2 .panel-outline {
+  clip-path: polygon(495px 0px, 11.7px 0px, 0px 11.7px, 0px 39px, 483.3px 39px, 495px 27.3px, 495px 0px);
+}
+.side.p2 .panel-fill {
+  left: calc(var(--fill-left) + var(--flag-width));
+  top: 1px;
+  width: var(--fill-visible-width);
+  height: 37px;
+  clip-path: polygon(
+    var(--fill-visible-width) 26.03px,
+    var(--fill-visible-width) 0px,
+    0px 0px,
+    0px 37px,
+    calc(var(--fill-visible-width) - 10.98px) 37px,
+    var(--fill-visible-width) 26.03px
+  );
+}
+
+/* .flag and .panel-fill are separate sibling containers, but the fill's own
+   --fill-left/--fill-width are the single source of truth for the flag's
+   position — calc()'d off the same variables the fill itself uses, so the
+   fill genuinely limits the flag instead of both just repeating the same
+   numbers independently. */
+.flag {
+  position: absolute;
+  top: 1px;
+  width: var(--flag-width);
+  height: 37px;
+  object-fit: cover;
+}
+.side.p1 .flag {
+  left: calc(var(--fill-left) + var(--fill-visible-width));
+}
+.side.p2 .flag {
+  left: var(--fill-left);
+}
+
+/* Tag + name lay out as a flex row instead of two independently-pinned
+   coordinates — the SVG anchors were only 33px apart because the mockup's
+   placeholder strings ("ABC" / "Player 1") happened to be that wide; real
+   team tags and player names vary in length and would otherwise overlap.
+   The label is now a child of .panel-fill (which stops exactly at the flag,
+   see above), so `right: 0` reaches the fill's own edge with no calc needed —
+   the fill's box is what limits it. */
+.label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.tag,
+.name {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* A mixed-team duo's per-participant tag is nested inside .name — this
+   makes that pair its own centered flex row, matching how the dedicated
+   .tag/.name slots center against each other as siblings of .label. */
+.participant {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tag {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.name {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.score {
+  position: absolute;
+  top: 1px;
+  height: 37px;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 36px;
+  font-weight: 700;
+  color: #000;
+}
+.side.p1 .score {
+  left: 452.26px;
+}
+.side.p2 .score {
+  left: 19.26px;
+}
+
+.round {
+  position: absolute;
+  left: 617px;
+  top: 0;
+  width: 172px;
+  height: 39px;
+}
+.round .panel-outline {
+  clip-path: polygon(172px 0px, 172px 27.3px, 160.3px 39px, 11.7px 39px, 0px 27.3px, 0px 0px, 172px 0px);
+}
+.round .panel-fill {
+  left: 1px;
+  top: 1px;
+  width: 170px;
+  height: 37px;
+  clip-path: polygon(170px 0px, 170px 25.9px, 158.9px 37px, 11.1px 37px, 0px 25.9px, 0px 0px, 170px 0px);
+}
+.round-text {
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  width: 170px;
+  height: 37px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

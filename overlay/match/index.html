@@ -7,24 +7,34 @@
   </head>
   <body>
     <div id="board">
-      <div class="side p1 hidden" id="p1">
-        <span class="panel-bg"></span>
-        <span class="score-chip" id="p1-score"></span>
-        <span class="info">
-          <span class="team" id="p1-team"></span>
-          <div class="participants" id="p1-participants"></div>
-        </span>
+      <div class="players">
+        <div class="side p1 hidden" id="p1">
+          <span class="panel-outline"></span>
+          <span class="panel-fill">
+            <span class="label">
+              <span class="tag" id="p1-tag"></span>
+              <span class="name" id="p1-name"></span>
+            </span>
+          </span>
+          <img class="flag" id="p1-flag" alt="" />
+          <span class="score" id="p1-score"></span>
+        </div>
+        <div class="side p2 hidden" id="p2">
+          <span class="panel-outline"></span>
+          <span class="panel-fill">
+            <span class="label">
+              <span class="tag" id="p2-tag"></span>
+              <span class="name" id="p2-name"></span>
+            </span>
+          </span>
+          <img class="flag" id="p2-flag" alt="" />
+          <span class="score" id="p2-score"></span>
+        </div>
       </div>
-      <div class="round-chip">
-        <span id="round"></span>
-      </div>
-      <div class="side p2 hidden" id="p2">
-        <span class="panel-bg"></span>
-        <span class="info">
-          <span class="team" id="p2-team"></span>
-          <div class="participants" id="p2-participants"></div>
-        </span>
-        <span class="score-chip" id="p2-score"></span>
+      <div class="round">
+        <span class="panel-outline"></span>
+        <span class="panel-fill"></span>
+        <span class="round-text" id="round"></span>
       </div>
     </div>
     <script src="index.js"></script>

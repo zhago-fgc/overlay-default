@@ -1,5 +1,13 @@
 let countries = [];
 let latestState = null;
+let type2Games = new Set();
+
+fetch('game-types.json')
+  .then((res) => res.json())
+  .then((data) => {
+    type2Games = new Set(data['type-2'] || []);
+    if (latestState) render(latestState);
+  });
 
 function countryFlag(countryCode) {
   const value = String(countryCode || '').toLowerCase();
@@ -8,12 +16,10 @@ function countryFlag(countryCode) {
   return '/modules/countries/' + country.flag;
 }
 
-// A side's team label collapses to one shared tag when every participant is
-// on the same org (the common case) — repeating an identical team name next
-// to each player would be noise. It only expands to per-participant tags
-// when they actually differ (a cross-org duo: FLY's SonicFox + SHR's INZEM
-// on one side), which is exactly the case a single shared `side.team`
-// string can't express.
+// The design has one flag/name slot per side, not a per-participant list —
+// a 2XKO duo side collapses to its first participant's flag and every
+// participant's name joined, since there's no room here for a stacked
+// roster like the previous skin had.
 function fill(prefix, side) {
   const el = document.getElementById(prefix);
   const participants = side?.participants || [];
@@ -21,35 +27,38 @@ function fill(prefix, side) {
 
   const teams = new Set(participants.map((p) => p.team).filter(Boolean));
   const sharedTeam = teams.size === 1 ? [...teams][0] : '';
-  const teamEl = document.getElementById(prefix + '-team');
-  teamEl.textContent = sharedTeam;
-  teamEl.classList.toggle('hidden', !sharedTeam);
+  document.getElementById(prefix + '-tag').textContent = sharedTeam;
 
-  const list = document.getElementById(prefix + '-participants');
-  list.innerHTML = '';
-  participants.forEach((p) => {
-    const line = document.createElement('div');
-    line.className = 'participant-line';
-
-    const flag = countryFlag(p.country);
-    if (flag) {
-      const img = document.createElement('img');
-      img.className = 'participant-flag';
-      img.src = flag;
-      img.alt = p.country?.toUpperCase() || '';
-      line.appendChild(img);
+  // A shared team goes in the dedicated tag slot and names stay bare. When a
+  // side's participants are on different orgs (a 2XKO duo split across two
+  // teams), that slot can't express it — fold each participant's own tag
+  // into their name instead, reusing the `.tag` class so it keeps the same
+  // small/muted look rather than inheriting the bold name style as plain
+  // text. Each pair is its own flex row (`.participant`) so the tag centers
+  // against its name the same way the dedicated tag slot centers against
+  // .label — plain inline nesting would fall back to baseline alignment.
+  const nameEl = document.getElementById(prefix + '-name');
+  nameEl.replaceChildren();
+  participants.forEach((p, i) => {
+    if (!p.player) return;
+    if (i > 0) nameEl.append(' / ');
+    const participant = document.createElement('span');
+    participant.className = 'participant';
+    if (!sharedTeam && p.team) {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = p.team;
+      participant.append(tag);
     }
-
-    const text = document.createElement('span');
-    const bits = [];
-    if (!sharedTeam && p.team) bits.push(p.team);
-    if (p.player) bits.push(p.player);
-    const chars = (p.characters || []).join(' + ');
-    if (chars) bits.push('(' + chars + ')');
-    text.textContent = bits.join(' ');
-    line.appendChild(text);
-    list.appendChild(line);
+    participant.append(p.player);
+    nameEl.append(participant);
   });
+
+  const flagImg = document.getElementById(prefix + '-flag');
+  const flag = countryFlag(participants[0]?.country);
+  flagImg.src = flag;
+  flagImg.style.visibility = flag ? 'visible' : 'hidden';
+  flagImg.alt = participants[0]?.country?.toUpperCase() || '';
 
   document.getElementById(prefix + '-score').textContent = side?.score ?? 0;
 }
@@ -60,6 +69,7 @@ function render(state) {
   fill('p1', side1);
   fill('p2', side2);
   document.getElementById('round').textContent = state.round || '';
+  document.getElementById('board').dataset.type = type2Games.has(state.game) ? 'type-2' : 'type-1';
 }
 
 function loadCountries() {
